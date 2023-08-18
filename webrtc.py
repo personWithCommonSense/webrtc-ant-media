@@ -24,7 +24,7 @@ from gi.repository import GstSdp
 
 # This one can be used for testing
 PIPELINE_DESC = '''
- videotestsrc is-live=true pattern=ball ! videoconvert ! queue ! x264enc  speed-preset=ultrafast tune=zerolatency key-int-max  ! rtph264pay !
+ videotestsrc is-live=true pattern=ball ! videoconvert ! queue ! x264enc  speed-preset=ultrafast tune=zerolatency key-int-max=2  ! rtph264pay !
  queue ! application/x-rtp,media=video,encoding-name=H264,payload=96 ! webrtcbin name=sendrecv 
 '''
 
