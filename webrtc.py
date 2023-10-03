@@ -23,7 +23,7 @@ from gi.repository import GstSdp
 #  queue ! application/x-rtp,media=video,encoding-name=VP8,payload=96 ! webrtcbin name=sendrecv 
 # '''
 
-# Updated piplline
+# Updated pipeline
 PIPELINE_DESC = '''
 udpsrc port=5001 ! application/x-rtp,encoding-name=H264,payload=96 ! rtph264depay !  h264parse ! rtph264pay config-interval=-1 ! capssetter caps=application/x-rtp,profile-level-id=42e01f ! webrtcbin stun-server=stun://stun1.l.google.com:19302?transport=udp name=sendrecv
 '''
