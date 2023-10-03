@@ -23,10 +23,9 @@ from gi.repository import GstSdp
 #  queue ! application/x-rtp,media=video,encoding-name=VP8,payload=96 ! webrtcbin name=sendrecv 
 # '''
 
-# This one can be used for testing
+# Updated piplline
 PIPELINE_DESC = '''
- videotestsrc is-live=true pattern=ball ! videoconvert ! queue ! x264enc  speed-preset=ultrafast tune=zerolatency key-int-max=2  ! rtph264pay !
- queue ! application/x-rtp,media=video,encoding-name=H264,payload=96 ! webrtcbin name=sendrecv 
+udpsrc port=5001 ! application/x-rtp,encoding-name=H264,payload=96 ! rtph264depay !  h264parse ! rtph264pay config-interval=-1 ! capssetter caps=application/x-rtp,profile-level-id=42e01f ! webrtcbin stun-server=stun://stun1.l.google.com:19302?transport=udp name=sendrecv
 '''
 
 WEBSOCKET_URL = 'wss://media.streamit.live:5443/LiveApp/websocket?rtmpForward=undefined'
