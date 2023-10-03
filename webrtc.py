@@ -1,5 +1,6 @@
 import random
 import ssl
+from time import sleep
 import websockets
 import asyncio
 import os
@@ -22,10 +23,9 @@ from gi.repository import GstSdp
 #  queue ! application/x-rtp,media=video,encoding-name=VP8,payload=96 ! webrtcbin name=sendrecv 
 # '''
 
-# This one can be used for testing
+# Updated pipeline
 PIPELINE_DESC = '''
- videotestsrc is-live=true pattern=ball ! videoconvert ! queue ! vp8enc deadline=1 ! rtpvp8pay !
- queue ! application/x-rtp,media=video,encoding-name=VP8,payload=96 ! webrtcbin name=sendrecv 
+udpsrc port=5001 ! application/x-rtp,encoding-name=H264,payload=96 ! rtph264depay !  h264parse ! rtph264pay config-interval=-1 ! capssetter caps=application/x-rtp,profile-level-id=42e01f ! webrtcbin stun-server=stun://stun1.l.google.com:19302?transport=udp name=sendrecv
 '''
 
 WEBSOCKET_URL = 'wss://media.streamit.live:5443/LiveApp/websocket?rtmpForward=undefined'
@@ -53,6 +53,9 @@ class WebRTCClient:
         loop = asyncio.new_event_loop()
         loop.run_until_complete(self.conn.send('{"command":"takeConfiguration", "streamId": "' + self.id + '", "type": "offer", "sdp": "' + sdp +'"}'))
         loop.close()
+
+    async def get_stream_info(self):
+        await self.conn.send('{"command":"getStreamInfo","streamId":"' + self.id + '"}')
 
     def on_offer_created(self, promise, _, __):
         print('Offer Created')
@@ -124,9 +127,10 @@ class WebRTCClient:
         self.webrtc.connect('pad-added', self.on_incoming_stream)
         self.pipe.set_state(Gst.State.PLAYING)
 
-    def notification(self, data):
+    async def notification(self, data):
         if(data['definition'] == 'publish_started'):
             print('Publish Started')
+            await self.get_stream_info()
         else:
             print(data['definition'])
 
@@ -165,7 +169,11 @@ class WebRTCClient:
             elif(data['command'] == 'takeConfiguration'):
                 self.take_configuration(data)
             elif(data['command'] == 'notification'):
-                self.notification(data)
+                await self.notification(data)
+            elif(data['command'] == 'streamInformation'):
+                 print(data);
+                 await asyncio.sleep(1)
+                 await self.get_stream_info()
             elif(data['command'] == 'error'):
                  print('Message: ' + data['definition']);
             
